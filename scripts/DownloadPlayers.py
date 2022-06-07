@@ -10,7 +10,7 @@ with open("players.jsonl", "w") as file:
     error_count = 0
     player_count = 0
 
-    while player_count < 100:
+    while player_count < 100_000:
         url = base_url + str(page)
 
         try:
