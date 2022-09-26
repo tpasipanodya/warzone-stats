@@ -1,5 +1,6 @@
 import json
 
+
 delimiter = ','
 header_row = [
     'username',
@@ -12,11 +13,12 @@ header_row = [
 ]
 
 
+#
 def reformat_all_matches():
     with open('../data/matches.csv', 'w') as matches_csv_file:
         matches_csv_file.write('{}\n'.format(delimiter.join(header_row)))
 
-        with open('') as matches_jsonl_file:
+        with open('../data/player_matches.processed.jsonl') as matches_jsonl_file:
             for match_str in matches_jsonl_file.readlines():
                 match_json = json.loads(match_str)
 
@@ -24,6 +26,7 @@ def reformat_all_matches():
                 matches_csv_file.write('{}\n'.format(row))
 
 
+#
 def reformat_match(match_json):
     return '{},{},{}'
 
