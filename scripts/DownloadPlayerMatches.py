@@ -14,7 +14,7 @@ errors = []
 
 known_match_ids = set()
 try:
-    with open('../data/player_matches.processed.jsonl', 'r') as matches_file:
+    with open('../data/matches.processed.jsonl', 'r') as matches_file:
         for entry in matches_file.readlines():
             if entry.startswith('{'):
                 parsed_entry = json.loads(entry)
@@ -80,8 +80,8 @@ def serialized_player(segment):
 
 
 def download_matches_for_players():
-    with open('../data/player_matches.processed.jsonl', 'a') as processed_matches_file:
-        with open('../data/player_matches.raw.jsonl', 'a') as raw_matches_file:
+    with open('../data/matches.processed.jsonl', 'a') as processed_matches_file:
+        with open('../data/matches.raw.jsonl', 'a') as raw_matches_file:
             with open('../data/player_match_errors.jsonl', 'a') as match_errors_file:
                 with open('../data/enriched_players.processed.jsonl', 'r') as players_file:
                     initialize_VPN(save=1, area_input=['complete rotation'])

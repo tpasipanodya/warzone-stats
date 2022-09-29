@@ -104,7 +104,7 @@ except Exception as e:
 
 
 # Some matches cannot be resolved
-with open('../data/player_matches.processed.jsonl', 'r') as matches_file:
+with open('../data/matches.processed.jsonl', 'r') as matches_file:
     with open('../data/peers.processed.jsonl', 'a') as peers_processed_file:
         with open('../data/peers.raw.jsonl', 'a') as peers_raw_file:
             with open('../data/peer_errors.jsonl', 'a') as error_file:
