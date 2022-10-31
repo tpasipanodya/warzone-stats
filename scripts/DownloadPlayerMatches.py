@@ -2,6 +2,7 @@ import json
 import time
 import datetime
 from selenium import webdriver
+from random import randrange
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 browser = webdriver.Chrome()
@@ -85,6 +86,7 @@ def download_matches_for_players():
             with open('../data/player_match_errors.jsonl', 'a') as match_errors_file:
                 with open('../data/enriched_players.processed.jsonl', 'r') as players_file:
                     initialize_VPN(save=1, area_input=['complete rotation'])
+                    rotate_VPN()
 
                     for player_entry in players_file.readlines():
                         parsed_player = json.loads(player_entry)
@@ -98,6 +100,7 @@ def download_matches_for_players():
                                 print('{}| Skipped match {}'.format(current_timestamp(), match_id))
                             else:
                                 print('{}| Processing match {}'.format(current_timestamp(), match_id))
+                                time.sleep(3 + randrange(2))
                                 url = base_url.format(match_id)
                                 browser.get(url)
 
@@ -141,10 +144,14 @@ def download_matches_for_players():
                                                 'response': raw_response
                                             })))
                                 else:
+                                    error_message = 'Failed querying for match {}'.format(match_id)
+                                    print('{}| {}'.format(current_timestamp(), error_message))
                                     match_errors_file.write('{}\n'.format(json.dumps({
                                         'id': match_id,
                                         'response': raw_response
                                     })))
+                                    rotate_VPN()
+                                    raise Exception(error_message)
                     terminate_VPN()
 
 
