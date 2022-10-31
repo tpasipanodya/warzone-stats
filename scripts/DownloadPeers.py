@@ -169,7 +169,7 @@ def download_peers():
                                 known_peers.add(peer_username)
                                 print('{}| Processed {} matches for player {}. Encountered {} errors'
                                       .format(current_timestamp(),
-                                              str(processed_matches.size),
+                                              str(len(processed_matches)),
                                               peer_username,
                                               str(len(errors))))
     terminate_VPN()
