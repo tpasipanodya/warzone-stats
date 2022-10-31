@@ -48,14 +48,16 @@ def download_players():
                             full_errors = []
                             processed_matches = []
                             query_url = base_url.format(parse.quote_plus(username))
-                            print('{}| Processing {}. page: {}'.format(current_timestamp(), username, page))
+
 
                             while page:
                                 time.sleep(3 + randrange(3))
                                 paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(page)))
+                                print('{}| Querying for player {}. query_url: {}'
+                                      .format(current_timestamp(), username, paged_query_url))
                                 raw_fetched_matches, fetched_matches, errors, page = fetch_matches(paged_query_url, username)
 
-                                print('{}| Player: {}, fetched_matches: {}, next_page: {}'
+                                print('{}| Downloaded Player: {}, match_count: {}, next_page: {}'
                                       .format(current_timestamp(), username, str(len(fetched_matches)), page))
 
                                 for match in fetched_matches:
