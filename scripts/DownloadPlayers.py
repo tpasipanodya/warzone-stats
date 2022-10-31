@@ -41,15 +41,17 @@ def download_players():
 
                         if username not in known_players:
                             print('{}| Processing {}'.format(current_timestamp(), username))
-                            query_url = base_url.format(parse.quote_plus(username))
-                            raw_fetched_matches, fetched_matches, errors, next_page = fetch_matches(query_url, username)
-
+                            next_page = '2020-06-10T00:00:00+00:00'
                             match_count = 0
                             raw_matches = []
                             full_errors = []
                             processed_matches = []
+                            query_url = base_url.format(parse.quote_plus(username))
 
-                            while len(fetched_matches) > 0 or next_page:
+                            while next_page:
+                                paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(next_page)))
+                                raw_fetched_matches, fetched_matches, errors, next_page = fetch_matches(paged_query_url, username)
+
                                 print('{}| Player: {}, fetched_matches: {}, next_page: {}'
                                       .format(current_timestamp(),
                                               username,
@@ -65,9 +67,6 @@ def download_players():
 
                                 for error in errors:
                                     full_errors.append(error)
-
-                                paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(next_page)))
-                                raw_fetched_matches, fetched_matches, errors, next_page = fetch_matches(paged_query_url, username)
 
                             raw_file.write('{}\n'.format(json.dumps({
                                 'username': username,

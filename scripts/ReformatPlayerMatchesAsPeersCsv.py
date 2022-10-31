@@ -49,9 +49,7 @@ def peer_row(match_id, player, peer):
     return '{},{},{},{},{},{},{},{}'.format(match_id,
                                             player['username'],
                                             peer['username'],
-                                            peer_stats['kd_ratio'],
-                                            lifetime_stats['level'],
-                                            lifetime_stats['wins'],
+                                            peer_stats['kd_ratio'], # kd for this game. we'll need to calculate l
                                             friend_or_foe(match_id, player, peer),
                                             peer_stats['spm'])
 

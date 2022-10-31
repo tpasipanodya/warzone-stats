@@ -70,7 +70,7 @@ except Exception as e:
 
 # Page through a leaderboard, writing to file any players
 # we haven't encountered before.
-def sample_next_set_of_players(n=50):
+def sample_next_set_of_players(n=10):
     with open('../data/sampled_players.raw.jsonl', 'a') as players_raw_file:
         with open('../data/sampled_players.processed.jsonl', 'a') as players_processed_file:
             player_count = 1
@@ -89,7 +89,6 @@ def sample_next_set_of_players(n=50):
                     except Exception as e:
                         print('Failed loading players for player index {} due to error {}'
                               .format(str(player_index), str(e)))
-                terminate_VPN()
 
 
 sample_next_set_of_players()
