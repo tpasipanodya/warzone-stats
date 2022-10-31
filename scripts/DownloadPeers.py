@@ -1,6 +1,9 @@
 import json
 import time
+import datetime
 from selenium import webdriver
+from random import randrange
+from urllib import parse
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 browser = webdriver.Chrome()
@@ -9,35 +12,74 @@ opening_response_tag = '<html><head><meta name="color-scheme" content="light dar
 closing_response_tag = '</pre></body></html>'
 
 
+
+# Load the full list of match ids.
+known_peers = set()
+try:
+    with open('../data/peers.processed.jsonl', 'r') as peers_file:
+        for peer_str in peers_file.readlines():
+            if peer_str.startswith('{'):
+                peer = json.loads(peer_str)
+                known_peers.add(peer['username'].strip())
+except Exception as e:
+    print('Failed loading existing matches: {}'.format(str(e)))
+
+
+def current_timestamp():
+    return datetime.datetime.now().isoformat()
+
+
 # Method for loading, parsing and extracting matches for a given
 # player given a URL.
-def fetch_matches(query_url):
-    browser.get(query_url)
+def fetch_peer(username):
+    errors = []
+    matches = []
+    page = '2020-06-10T00:00:00+00:00'
 
+    while page:
+        fetched_matches, encountered_errors, page = fetch_peer_matches(username, page)
+
+        for match in fetched_matches:
+            matches.append(match)
+
+        for error in encountered_errors:
+            errors.append(error)
+    return matches, errors
+
+
+#
+#
+def fetch_peer_matches(peer, curr_page):
+    time.sleep(3 + randrange(2))
+    query_url = '{}&next={}'.format(base_url.format(parse.quote_plus(peer)), parse.quote_plus(str(curr_page)))
+    print('{}| Peer query: {}'.format(query_url))
+
+    errors = []
+    matches = []
+
+    browser.get(query_url)
     response_html = browser.page_source
     response_str = response_html.replace(opening_response_tag, '')
     response_str = response_str.replace(closing_response_tag, '')
-
-    raw_matches = []
-    matches = []
-    errors = []
 
     if response_str.startswith('{') and response_str.endswith('}'):
         response_json = json.loads(response_str)
 
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' for error in response_json['errors']):
-                print('Rate Limited! Sleeping 5 minutes...')
+                print('{}| Rate Limited! Sleeping 5 minutes...'.format(current_timestamp()))
                 time.sleep(300)
                 rotate_VPN()
+                return matches, errors, curr_page
             else:
-                print('ERROR player: {}. cause: {}'.format(peer_username, response_json))
-                errors.append({
-                    'username': peer_username,
-                    'response': response_json
-                })
+                print('{}| ERROR Skipping peer {} due to failed query. cause: {}.'
+                      .format(current_timestamp(), peer, response_json))
+                errors.append({ 'username': peer, 'response': response_json })
+                return matches, errors, None
         else:
             data = response_json['data']
+            next_page = data['metadata']['next']
+
             for match in data['matches']:
                 match_json = {
                     'id': match['attributes']['id'],
@@ -81,92 +123,57 @@ def fetch_matches(query_url):
                 match_json['teammates'] = [{'id': t['platformUserHandle'], 'stats': t['stats']} for t in teammates]
 
                 matches.append(match_json)
-                raw_matches.append(match)
+
+            if len(matches) < 10 or next_page > curr_page:
+                next_page = None
+                print('{}| WARN Eagerly terminating peer match queries! current_match_count: {}, current_page: {}, next_page: {}'
+                      .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
+            return matches, errors, next_page
     else:
-        print('Failed downloading matches for player {}'.format(peer_username))
-        errors.append({
-            'username': peer_username,
-            'response': response_html
-        })
-    return raw_matches, matches, errors
+        error_message = 'Failed downloading matches for player {}'.format(peer)
+        print(error_message)
+        rotate_VPN()
+        raise Exception(error_message)
 
 
-# Load the full list of match ids.
-known_peers = set()
-try:
-    with open('../data/peers.processed.jsonl', 'r') as peers_file:
-        for peer_str in peers_file.readlines():
-            if peer_str.startswith('{'):
-                peer = json.loads(peer_str)
-                known_peers.add(peer['username'].strip())
-except Exception as e:
-    print('Failed loading existing matches: {}'.format(str(e)))
+def download_peers():
+    with open('../data/matches.processed.jsonl', 'r') as matches_file:
+        with open('../data/peers.processed.jsonl', 'a') as peers_processed_file:
+            with open('../data/peers.raw.jsonl', 'a') as peers_raw_file:
+                with open('../data/peer_errors.jsonl', 'a') as errors_file:
+                    initialize_VPN(save=1, area_input=['complete rotation'])
+                    rotate_VPN()
 
-
-# Some matches cannot be resolved
-with open('../data/matches.processed.jsonl', 'r') as matches_file:
-    with open('../data/peers.processed.jsonl', 'a') as peers_processed_file:
-        with open('../data/peers.raw.jsonl', 'a') as peers_raw_file:
-            with open('../data/peer_errors.jsonl', 'a') as error_file:
-                initialize_VPN(save=1, area_input=['complete rotation'])
-
-                for match_str in matches_file.readlines():
-                    if match_str.startswith('{'):
+                    for match_str in matches_file.readlines():
                         match = json.loads(match_str)
+
                         for player in match['players']:
                             peer_username = player['username'].strip()
 
                             if peer_username in known_peers:
-                                print("Skipping peer {}".format(peer_username))
+                                print("{}| Skipping peer {}".format(current_timestamp(), peer_username))
                             else:
-                                query_url = base_url.format(peer_username)
-                                raw_fetched_matches, fetched_matches, errors = fetch_matches(query_url)
+                                processed_matches, errors = fetch_peer(peer_username)
 
-                                match_count = 0
-                                raw_matches = []
-                                full_errors = []
-                                processed_matches = []
-                                prev_last_match_id = None
+                                peers_processed_file.write('{}\n'.format(json.dumps({
+                                    'username': peer_username,
+                                    'matches': processed_matches
+                                })))
 
-                                while len(fetched_matches) > 0:
-                                    for match in fetched_matches:
-                                        match_count += 1
-                                        processed_matches.append(match)
-
-                                    for match in raw_fetched_matches:
-                                        raw_matches.append(match)
-
-                                    for error in errors:
-                                        full_errors.append(error)
-
-                                    last_match = processed_matches[-1]
-                                    last_match_id = last_match['id']
-                                    last_timestamp = last_match['timestamp']
-
-                                    if last_match_id == prev_last_match_id:
-                                        break
-
-                                    paged_query_url = query_url + '&next=' + last_timestamp
-                                    raw_fetched_matches, fetched_matches, errors = fetch_matches(paged_query_url)
-                                    prev_last_match_id = last_match_id
-
-                                    peers_raw_file.write('{}\n'.format(json.dumps({
+                                if len(errors) > 0:
+                                    errors_file.write('{}\n'.format(json.dumps({
                                         'username': peer_username,
-                                        'matches': raw_matches
+                                        'matches': errors
                                     })))
-                                    peers_processed_file.write('{}\n'.format(json.dumps({
-                                        'username': peer_username,
-                                        'matches': processed_matches
-                                    })))
-                                    error_file.write(json.dumps(full_errors))
-                                    known_peers.add(peer_username)
-                                    print('Processed {} matches for player {}'
-                                          .format(str(match_count), peer_username))
 
-                                else:
-                                    print('Skipped player {}'.format(peer_username))
+                                known_peers.add(peer_username)
+                                print('{}| Processed {} matches for player {}. Encountered {} errors'
+                                      .format(current_timestamp(),
+                                              str(processed_matches.size),
+                                              peer_username,
+                                              str(len(errors))))
+    terminate_VPN()
+    print('Done!')
 
 
-print('Done!')
-
-
+download_peers()

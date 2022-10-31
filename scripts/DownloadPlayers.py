@@ -49,7 +49,6 @@ def download_players():
                             processed_matches = []
                             query_url = base_url.format(parse.quote_plus(username))
 
-
                             while page:
                                 time.sleep(3 + randrange(3))
                                 paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(page)))
