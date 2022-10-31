@@ -3,6 +3,7 @@ import time
 import datetime
 from selenium import webdriver
 from urllib import parse
+from random import randrange
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 browser = webdriver.Chrome()
@@ -34,6 +35,7 @@ def download_players():
             with open('../data/enriched_players.raw.jsonl', 'a') as raw_file:
                 with open('../data/enriched_player_errors.jsonl', 'a') as error_file:
                     initialize_VPN(save=1, area_input=['complete rotation'])
+                    rotate_VPN()
 
                     for player_json_str in sampled_players.readlines():
                         player_json = json.loads(player_json_str)
@@ -49,6 +51,7 @@ def download_players():
                             query_url = base_url.format(parse.quote_plus(username))
 
                             while next_page:
+                                time.sleep(randrange(6))
                                 paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(next_page)))
                                 raw_fetched_matches, fetched_matches, errors, next_page = fetch_matches(paged_query_url, username)
 
@@ -169,6 +172,7 @@ def fetch_matches(query_url, username):
             'username': username,
             'response': response_html
         })
+        rotate_VPN()
     return raw_matches, matches, errors, next_page
 
 
