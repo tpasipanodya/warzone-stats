@@ -52,7 +52,7 @@ def fetch_peer(username):
 def fetch_peer_matches(peer, curr_page):
     time.sleep(3 + randrange(2))
     query_url = '{}&next={}'.format(base_url.format(parse.quote_plus(peer)), parse.quote_plus(str(curr_page)))
-    print('{}| Peer query: {}'.format(query_url))
+    print('{}| Peer query: {}'.format(current_timestamp(), query_url))
 
     errors = []
     matches = []
