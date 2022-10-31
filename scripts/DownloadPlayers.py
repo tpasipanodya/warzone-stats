@@ -167,12 +167,14 @@ def fetch_matches(query_url, username):
                 matches.append(match_json)
                 raw_matches.append(match)
     else:
-        print('Failed downloading matches for player {}'.format(username))
+        message = 'Failed downloading matches for player {}'.format(username)
+        print(message)
         errors.append({
             'username': username,
             'response': response_html
         })
         rotate_VPN()
+        raise Exception(message)
     return raw_matches, matches, errors, next_page
 
 
