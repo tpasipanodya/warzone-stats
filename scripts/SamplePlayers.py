@@ -73,9 +73,10 @@ except Exception as e:
 def sample_next_set_of_players(n=10):
     with open('../data/sampled_players.raw.jsonl', 'a') as players_raw_file:
         with open('../data/sampled_players.processed.jsonl', 'a') as players_processed_file:
-            player_count = 1
+            player_count = 0
             with open('../data/player_errors.jsonl', 'a') as error_file:
                 initialize_VPN(save=1, area_input=['complete rotation'])
+                rotate_VPN()
 
                 while player_count < n:
                     try:
@@ -89,6 +90,7 @@ def sample_next_set_of_players(n=10):
                     except Exception as e:
                         print('Failed loading players for player index {} due to error {}'
                               .format(str(player_index), str(e)))
+                        rotate_VPN()
 
 
 sample_next_set_of_players()
