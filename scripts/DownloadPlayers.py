@@ -42,24 +42,21 @@ def download_players():
                         username = player_json['id']
 
                         if username not in known_players:
-                            print('{}| Processing {}'.format(current_timestamp(), username))
-                            next_page = '2020-06-10T00:00:00+00:00'
+                            page = '2020-06-10T00:00:00+00:00'
                             match_count = 0
                             raw_matches = []
                             full_errors = []
                             processed_matches = []
                             query_url = base_url.format(parse.quote_plus(username))
+                            print('{}| Processing {}. page: {}'.format(current_timestamp(), username, page))
 
-                            while next_page:
-                                time.sleep(randrange(6))
-                                paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(next_page)))
-                                raw_fetched_matches, fetched_matches, errors, next_page = fetch_matches(paged_query_url, username)
+                            while page:
+                                time.sleep(3 + randrange(3))
+                                paged_query_url = '{}{}{}'.format(query_url, '&next=', parse.quote_plus(str(page)))
+                                raw_fetched_matches, fetched_matches, errors, page = fetch_matches(paged_query_url, username)
 
                                 print('{}| Player: {}, fetched_matches: {}, next_page: {}'
-                                      .format(current_timestamp(),
-                                              username,
-                                              str(len(fetched_matches)),
-                                              next_page))
+                                      .format(current_timestamp(), username, str(len(fetched_matches)), page))
 
                                 for match in fetched_matches:
                                     match_count += 1
