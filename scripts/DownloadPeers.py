@@ -124,7 +124,7 @@ def fetch_peer_matches(peer, curr_page):
 
                 matches.append(match_json)
 
-            if len(matches) < 10 or next_page > curr_page:
+            if eagerly_terminate_match_queries(matches):
                 next_page = None
                 print('{}| WARN Eagerly terminating peer match queries! current_match_count: {}, current_page: {}, next_page: {}'
                       .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
@@ -134,6 +134,16 @@ def fetch_peer_matches(peer, curr_page):
         print(error_message)
         rotate_VPN()
         raise Exception(error_message)
+
+
+def eagerly_terminate_match_queries(batch):
+    for match in batch:
+        if match['timestamp'].isnumeric() and datetime.datetime.fromtimestamp(match['timestamp']).year > 2020:
+            return True
+        elif match['timestamp'] > '2020-06-10T00:00:00+00:00':
+            return True
+        elif len(batch) < 10:
+            return True
 
 
 def download_peers():
