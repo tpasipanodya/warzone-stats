@@ -74,7 +74,7 @@ def sample_next_set_of_players(n=10):
     with open('../data/sampled_players.raw.jsonl', 'a') as players_raw_file:
         with open('../data/sampled_players.processed.jsonl', 'a') as players_processed_file:
             player_count = 0
-            with open('../data/player_errors.jsonl', 'a') as error_file:
+            with open('../data/sampled_players.errors.jsonl', 'a') as error_file:
                 initialize_VPN(save=1, area_input=['complete rotation'])
                 rotate_VPN()
 

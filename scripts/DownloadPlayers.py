@@ -42,7 +42,7 @@ def download_players():
                         username = player_json['id']
 
                         if username not in known_players:
-                            page = '2020-06-10T00:00:00+00:00'
+                            page = '2020-07-01T01:00:00+00:00'
                             match_count = 0
                             raw_matches = []
                             full_errors = []

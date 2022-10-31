@@ -83,7 +83,7 @@ def serialized_player(segment):
 def download_matches_for_players():
     with open('../data/matches.processed.jsonl', 'a') as processed_matches_file:
         with open('../data/matches.raw.jsonl', 'a') as raw_matches_file:
-            with open('../data/player_match_errors.jsonl', 'a') as match_errors_file:
+            with open('../data/matches.errors.jsonl', 'a') as match_errors_file:
                 with open('../data/enriched_players.processed.jsonl', 'r') as players_file:
                     initialize_VPN(save=1, area_input=['complete rotation'])
                     rotate_VPN()

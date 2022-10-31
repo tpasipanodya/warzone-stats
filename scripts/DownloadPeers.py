@@ -34,7 +34,7 @@ def current_timestamp():
 def fetch_peer(username):
     errors = []
     matches = []
-    page = '2020-06-10T00:00:00+00:00'
+    page = '2020-07-01T01:00:00+00:00'
 
     while page:
         fetched_matches, encountered_errors, page = fetch_peer_matches(username, page)
@@ -140,7 +140,7 @@ def eagerly_terminate_match_queries(batch):
     for match in batch:
         if match['timestamp'].isnumeric() and datetime.datetime.fromtimestamp(match['timestamp']).year > 2020:
             return True
-        elif match['timestamp'] > '2020-06-10T00:00:00+00:00':
+        elif match['timestamp'] > '2020-07-01T01:00:00+00:00':
             return True
         elif len(batch) < 10:
             return True
