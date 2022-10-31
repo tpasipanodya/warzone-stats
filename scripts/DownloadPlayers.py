@@ -47,7 +47,7 @@ def download_players():
                             raw_matches = []
                             full_errors = []
                             processed_matches = []
-                            query_url = base_url.format(parse.quote_plus(username))
+                            query_url = base_url.format(parse.quote(username))
 
                             while page:
                                 time.sleep(3 + randrange(3))
