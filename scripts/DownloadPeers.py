@@ -50,7 +50,7 @@ def fetch_peer(username):
 #
 #
 def fetch_peer_matches(peer, curr_page):
-    time.sleep(3 + randrange(2))
+    time.sleep(0 + randrange(2))
     query_url = '{}&next={}'.format(base_url.format(parse.quote(peer)), parse.quote_plus(str(curr_page)))
     print('{}| Peer query: {}'.format(current_timestamp(), query_url))
 
@@ -68,7 +68,7 @@ def fetch_peer_matches(peer, curr_page):
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' for error in response_json['errors']):
                 print('{}| Rate Limited! Sleeping 5 minutes...'.format(current_timestamp()))
-                time.sleep(300)
+                time.sleep(200)
                 rotate_VPN()
                 return matches, errors, curr_page
             else:
