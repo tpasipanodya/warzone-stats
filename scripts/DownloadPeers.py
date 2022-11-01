@@ -68,7 +68,7 @@ def fetch_peer_matches(peer, curr_page):
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' for error in response_json['errors']):
                 print('{}| Rate Limited! Sleeping 5 minutes...'.format(current_timestamp()))
-                time.sleep(200)
+                time.sleep(60)
                 rotate_VPN()
                 return matches, errors, curr_page
             else:
