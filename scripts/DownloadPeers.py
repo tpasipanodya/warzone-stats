@@ -10,8 +10,7 @@ browser = webdriver.Chrome()
 base_url = 'https://api.tracker.gg/api/v2/warzone/standard/matches/atvi/{}?type=wz'
 opening_response_tag = '<html><head><meta name="color-scheme" content="light dark"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">'
 closing_response_tag = '</pre></body></html>'
-
-
+request_count = 0
 
 # Load the full list of match ids.
 known_peers = set()
@@ -57,7 +56,14 @@ def fetch_peer_matches(peer, curr_page):
     errors = []
     matches = []
 
+    if request_count >= 100:
+        rotate_VPN()
+        request_count = 0
+
     browser.get(query_url)
+    global request_count
+    request_count += 1
+
     response_html = browser.page_source
     response_str = response_html.replace(opening_response_tag, '')
     response_str = response_str.replace(closing_response_tag, '')
@@ -68,7 +74,7 @@ def fetch_peer_matches(peer, curr_page):
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' for error in response_json['errors']):
                 print('{}| Rate Limited! Sleeping 5 minutes...'.format(current_timestamp()))
-                time.sleep(60)
+                time.sleep(30)
                 rotate_VPN()
                 return matches, errors, curr_page
             else:
