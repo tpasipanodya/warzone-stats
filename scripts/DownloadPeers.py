@@ -76,7 +76,6 @@ def fetch_peer_matches(peer, curr_page):
                 print('{}| Rate Limited! Sleeping 30 seconds...'.format(current_timestamp()))
                 time.sleep(30)
                 rotate_VPN()
-                global request_count
                 request_count = 0
                 return matches, errors, curr_page
             else:
@@ -140,7 +139,6 @@ def fetch_peer_matches(peer, curr_page):
     else:
         error_message = 'Failed downloading matches for player {}'.format(peer)
         print(error_message)
-        global request_count
         request_count = 0
         rotate_VPN()
         raise Exception(error_message)
