@@ -57,7 +57,7 @@ def fetch_peer_matches(peer, curr_page):
     matches = []
 
     global request_count
-    if request_count >= 100:
+    if request_count >= 50:
         rotate_VPN()
         request_count = 0
 
