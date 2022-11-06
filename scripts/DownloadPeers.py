@@ -72,8 +72,8 @@ def fetch_peer_matches(peer, curr_page):
         response_json = json.loads(response_str)
 
         if 'errors' in response_json:
-            if any(error['code'] == 'RateLimited' for error in response_json['errors']):
-                print('{}| Rate Limited! Sleeping 5 minutes...'.format(current_timestamp()))
+            if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in response_json['errors']):
+                print('{}| Rate Limited! Sleeping 30 seconds...'.format(current_timestamp()))
                 time.sleep(30)
                 rotate_VPN()
                 return matches, errors, curr_page
