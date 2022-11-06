@@ -56,12 +56,12 @@ def fetch_peer_matches(peer, curr_page):
     errors = []
     matches = []
 
+    global request_count
     if request_count >= 100:
         rotate_VPN()
         request_count = 0
 
     browser.get(query_url)
-    global request_count
     request_count += 1
 
     response_html = browser.page_source
@@ -76,6 +76,8 @@ def fetch_peer_matches(peer, curr_page):
                 print('{}| Rate Limited! Sleeping 30 seconds...'.format(current_timestamp()))
                 time.sleep(30)
                 rotate_VPN()
+                global request_count
+                request_count = 0
                 return matches, errors, curr_page
             else:
                 print('{}| ERROR Skipping peer {} due to failed query. cause: {}.'
@@ -138,6 +140,8 @@ def fetch_peer_matches(peer, curr_page):
     else:
         error_message = 'Failed downloading matches for player {}'.format(peer)
         print(error_message)
+        global request_count
+        request_count = 0
         rotate_VPN()
         raise Exception(error_message)
 
