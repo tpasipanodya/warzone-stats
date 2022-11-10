@@ -20,6 +20,7 @@ def reset_connection():
     time.sleep(5)
     rotate_VPN()
     browser = webdriver.Chrome()
+    browser.manage().deleteAllCookies()
 
 
 # Load the full list of match ids.
