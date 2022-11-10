@@ -12,6 +12,16 @@ opening_response_tag = '<html><head><meta name="color-scheme" content="light dar
 closing_response_tag = '</pre></body></html>'
 request_count = 0
 
+
+def reset_connection():
+    global browser
+    browser.close()
+    browser.quit()
+    time.sleep(5)
+    rotate_VPN()
+    browser = webdriver.Chrome()
+
+
 # Load the full list of match ids.
 known_peers = set()
 try:
@@ -58,7 +68,7 @@ def fetch_peer_matches(peer, curr_page):
 
     global request_count
     if request_count >= 50:
-        rotate_VPN()
+        reset_connection()
         request_count = 0
 
     browser.get(query_url)
@@ -75,7 +85,7 @@ def fetch_peer_matches(peer, curr_page):
             if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in response_json['errors']):
                 print('{}| Rate Limited! Sleeping 30 seconds...'.format(current_timestamp()))
                 time.sleep(30)
-                rotate_VPN()
+                reset_connection()
                 request_count = 0
                 return matches, errors, curr_page
             else:
@@ -140,7 +150,7 @@ def fetch_peer_matches(peer, curr_page):
         error_message = 'Failed downloading matches for player {}'.format(peer)
         print(error_message)
         request_count = 0
-        rotate_VPN()
+        reset_connection()
         raise Exception(error_message)
 
 
