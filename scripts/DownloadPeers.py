@@ -85,7 +85,7 @@ def fetch_peer_matches(peer, curr_page):
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in response_json['errors']):
                 print('{}| Rate Limited! Sleeping 30 seconds...'.format(current_timestamp()))
-                time.sleep(30)
+                time.sleep(15)
                 reset_connection()
                 request_count = 0
                 return matches, errors, curr_page
