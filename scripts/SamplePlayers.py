@@ -70,7 +70,7 @@ except Exception as e:
 
 # Page through a leaderboard, writing to file any players
 # we haven't encountered before.
-def sample_next_set_of_players(n=10):
+def sample_next_set_of_players(n=1):
     with open('../data/sampled_players.raw.jsonl', 'a') as players_raw_file:
         with open('../data/sampled_players.processed.jsonl', 'a') as players_processed_file:
             player_count = 0
