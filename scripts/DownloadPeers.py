@@ -178,30 +178,42 @@ def download_peers():
                         match = json.loads(match_str)
 
                         for player in match['players']:
-                            peer_username = player['username'].strip()
-
-                            if peer_username in known_peers:
-                                print("{}| Skipping peer {}".format(current_timestamp(), peer_username))
-                            else:
-                                processed_matches, errors = fetch_peer(peer_username)
-
-                                peers_processed_file.write('{}\n'.format(json.dumps({
+                            peer_username = player['username']
+                            if peer_username is None:
+                                print("{}| Skipping over peer with a null id")
+                                errors_file.write('{}\n'.format(json.dumps({
                                     'username': peer_username,
-                                    'matches': processed_matches
+                                    'matches': {
+                                        "cause": "Peer with a null id",
+                                        "player": player,
+                                        "match": match
+                                    }
                                 })))
+                            else:
+                                peer_username = peer_username.strip()
 
-                                if len(errors) > 0:
-                                    errors_file.write('{}\n'.format(json.dumps({
+                                if peer_username in known_peers:
+                                    print("{}| Skipping peer {}".format(current_timestamp(), peer_username))
+                                else:
+                                    processed_matches, errors = fetch_peer(peer_username)
+
+                                    peers_processed_file.write('{}\n'.format(json.dumps({
                                         'username': peer_username,
-                                        'matches': errors
+                                        'matches': processed_matches
                                     })))
 
-                                known_peers.add(peer_username)
-                                print('{}| Processed {} matches for player {}. Encountered {} errors'
-                                      .format(current_timestamp(),
-                                              str(len(processed_matches)),
-                                              peer_username,
-                                              str(len(errors))))
+                                    if len(errors) > 0:
+                                        errors_file.write('{}\n'.format(json.dumps({
+                                            'username': peer_username,
+                                            'matches': errors
+                                        })))
+
+                                    known_peers.add(peer_username)
+                                    print('{}| Processed {} matches for player {}. Encountered {} errors'
+                                          .format(current_timestamp(),
+                                                  str(len(processed_matches)),
+                                                  peer_username,
+                                                  str(len(errors))))
     terminate_VPN()
     print('Done!')
 
