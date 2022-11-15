@@ -180,7 +180,7 @@ def download_peers():
                         for player in match['players']:
                             peer_username = player['username']
                             if peer_username is None:
-                                print("{}| Skipping over peer with a null id")
+                                print("{}| Skipping over peer with a null id".format(current_timestamp()))
                                 errors_file.write('{}\n'.format(json.dumps({
                                     'username': peer_username,
                                     'matches': {
