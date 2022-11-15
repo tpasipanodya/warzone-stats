@@ -100,7 +100,7 @@ def download_matches_for_players():
                                 print('{}| Skipped match {}'.format(current_timestamp(), match_id))
                             else:
                                 print('{}| Processing match {}'.format(current_timestamp(), match_id))
-                                time.sleep(3 + randrange(2))
+                                time.sleep(randrange(2))
                                 url = base_url.format(match_id)
                                 browser.get(url)
 
@@ -135,7 +135,7 @@ def download_matches_for_players():
                                         if any(error['code'] == 'RateLimited' for error in errors):
                                             print('{}| Rate Limited. Sleeping for 5 minutes..'
                                                   .format(current_timestamp()))
-                                            time.sleep(300)
+                                            time.sleep(15)
                                             rotate_VPN()
                                             print('{}| Resuming...'.format(current_timestamp()))
                                         else:
