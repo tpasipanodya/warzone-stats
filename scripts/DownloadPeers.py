@@ -179,7 +179,7 @@ def extract_platform_user_id(profileUrl, platform):
 def serialized_player(raw_player):
     metadata = raw_player['metadata']
     attributes = raw_player['attributes']
-    platform = attributes.fetch('platformSlug', None)
+    platform = attributes.get('platformSlug', None)
     player = {'username': attributes['platformUserIdentifier']}
     if platform is None:
         return player
