@@ -177,11 +177,17 @@ def extractPlatformUserId(profileUrl, platform):
 def serialized_player(raw_player):
     metadata = raw_player['metadata']
     attributes = raw_player['attributes']
-    return {
-        'username': attributes['platformUserIdentifier'],
-        'platform': attributes['platformSlug'],
-        'platformUserId': extractPlatformUserId(metadata['profileUrl'], attributes['platformSlug'])
-    }
+    try:
+        return {
+            'username': attributes['platformUserIdentifier'],
+            'platform': attributes['platformSlug'],
+            'platformUserId': extractPlatformUserId(metadata['profileUrl'], attributes['platformSlug'])
+        }
+    except Exception as error:
+        print("{}| Peer parse error! Peer: {},   error: {}"
+              .format(current_timestamp(),
+                      json.dumps(raw_player),
+                      str(error)))
 
 
 def download_peers():
