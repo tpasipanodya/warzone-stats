@@ -179,14 +179,13 @@ def extract_platform_user_id(profileUrl, platform):
 def serialized_player(raw_player):
     metadata = raw_player['metadata']
     attributes = raw_player['attributes']
-    platform = attributes.get('platformSlug', None)
     player = {'username': attributes['platformUserIdentifier']}
-    if platform is None:
-        return player
-    else:
+
+    if 'platformSlug' in attributes:
         player['platform'] = attributes['platformSlug']
         player['platform_user_id'] = extract_platform_user_id(metadata['profileUrl'], player['platform'])
-        return player
+
+    return player
 
 
 def download_peers():
