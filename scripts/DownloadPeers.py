@@ -161,7 +161,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
                   .format(current_timestamp(), peer))
             request_count = 0
             reset_connection()
-            time.sleep(5)
+            time.sleep(5000)
             return matches, errors, curr_page
 
 
