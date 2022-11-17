@@ -7,7 +7,7 @@ from urllib import parse
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 browser = webdriver.Chrome()
-base_url = 'https://api.tracker.gg/api/v2/warzone/standard/matches/atvi/{}?type=wz'
+base_url = 'https://api.tracker.gg/api/v2/warzone/standard/matches/{}/{}?type=wz'
 opening_response_tag = '<html><head><meta name="color-scheme" content="light dark"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">'
 closing_response_tag = '</pre></body></html>'
 request_count = 0
@@ -41,13 +41,13 @@ def current_timestamp():
 
 # Method for loading, parsing and extracting matches for a given
 # player given a URL.
-def fetch_peer(username):
+def fetch_peer(username, platform_username, platform):
     errors = []
     matches = []
     page = '2020-07-01T01:00:00+00:00'
 
     while page:
-        fetched_matches, encountered_errors, page = fetch_peer_matches(username, page)
+        fetched_matches, encountered_errors, page = fetch_peer_matches(username, platform, platform_username, page)
 
         for match in fetched_matches:
             matches.append(match)
@@ -59,10 +59,12 @@ def fetch_peer(username):
 
 #
 #
-def fetch_peer_matches(peer, curr_page):
+def fetch_peer_matches(peer, platform, platform_username, curr_page):
     time.sleep(0 + randrange(2))
-    query_url = '{}&next={}'.format(base_url.format(parse.quote(peer)), parse.quote_plus(str(curr_page)))
-    print('{}| Peer query: {}'.format(current_timestamp(), query_url))
+    page_arg = parse.quote_plus(str(curr_page))
+    unpaged_query_url = base_url.format(platform, parse.quote(platform_username))
+    query_url = '{}&next={}'.format(unpaged_query_url, page_arg)
+    print('{}| Querying for peer \'{}\'. Query: {}'.format(current_timestamp(), peer, query_url))
 
     errors = []
     matches = []
@@ -166,54 +168,74 @@ def eagerly_terminate_match_queries(batch):
             return True
 
 
+def extractPlatformUserId(profileUrl, platform):
+    userId = profileUrl.split('/warzone/profile/{}/'.format(platform))[1]
+    userId = userId.split('/overview')[0]
+    return userId
+
+
+def serialized_player(raw_player):
+    metadata = raw_player['metadata']
+    attributes = raw_player['attributes']
+    return {
+        'username': attributes['platformUserIdentifier'],
+        'platform': attributes['platformSlug'],
+        'platformUserId': extractPlatformUserId(metadata['profileUrl'], attributes['platformSlug'])
+    }
+
+
 def download_peers():
-    with open('../data/matches.processed.jsonl', 'r') as matches_file:
+    with open('../data/matches.raw.jsonl', 'r') as matches_file:
         with open('../data/peers.processed.jsonl', 'a') as peers_processed_file:
-            with open('../data/peers.raw.jsonl', 'a') as peers_raw_file:
-                with open('../data/peer_errors.jsonl', 'a') as errors_file:
-                    initialize_VPN(save=1, area_input=['complete rotation'])
-                    rotate_VPN()
+            with open('../data/peer_errors.jsonl', 'a') as errors_file:
+                initialize_VPN(save=1, area_input=['complete rotation'])
+                rotate_VPN()
 
-                    for match_str in matches_file.readlines():
-                        match = json.loads(match_str)
+                for match_str in matches_file.readlines():
+                    match = json.loads(match_str)['data']
 
-                        for player in match['players']:
-                            peer_username = player['username']
-                            if peer_username is None:
-                                print("{}| Skipping over peer with a null id".format(current_timestamp()))
-                                errors_file.write('{}\n'.format(json.dumps({
-                                    'username': peer_username,
-                                    'matches': {
-                                        "cause": "Peer with a null id",
-                                        "player": player,
-                                        "match": match
-                                    }
-                                })))
+                    for segment in match['segments']:
+                        player = serialized_player(segment)
+                        platform = player['platform']
+                        peer_username = player['username']
+                        platform_user_id = player['platformUserId']
+
+
+                        if peer_username is None or len(platform_user_id) <= 1 or len(platform) <= 3:
+                            print("{}| Skipping over peer with a null id".format(current_timestamp()))
+                            errors_file.write('{}\n'.format(json.dumps({
+                                'username': peer_username,
+                                'matches': {
+                                    "cause": "Peer with a null id",
+                                    "player": player,
+                                    "match": match
+                                }
+                            })))
+                        else:
+                            peer_username = peer_username.strip()
+
+                            if peer_username in known_peers:
+                                print("{}| Skipping known peer {}".format(current_timestamp(), peer_username))
                             else:
-                                peer_username = peer_username.strip()
+                                processed_matches, errors = fetch_peer(peer_username, platform_user_id, platform)
 
-                                if peer_username in known_peers:
-                                    print("{}| Skipping peer {}".format(current_timestamp(), peer_username))
-                                else:
-                                    processed_matches, errors = fetch_peer(peer_username)
+                                peers_processed_file.write('{}\n'.format(json.dumps({
+                                    'username': peer_username,
+                                    'matches': processed_matches
+                                })))
 
-                                    peers_processed_file.write('{}\n'.format(json.dumps({
+                                if len(errors) > 0:
+                                    errors_file.write('{}\n'.format(json.dumps({
                                         'username': peer_username,
-                                        'matches': processed_matches
+                                        'matches': errors
                                     })))
 
-                                    if len(errors) > 0:
-                                        errors_file.write('{}\n'.format(json.dumps({
-                                            'username': peer_username,
-                                            'matches': errors
-                                        })))
-
-                                    known_peers.add(peer_username)
-                                    print('{}| Processed {} matches for player {}. Encountered {} errors'
-                                          .format(current_timestamp(),
-                                                  str(len(processed_matches)),
-                                                  peer_username,
-                                                  str(len(errors))))
+                                known_peers.add(peer_username)
+                                print('{}| Processed {} matches for player {}. Encountered {} errors'
+                                      .format(current_timestamp(),
+                                              str(len(processed_matches)),
+                                              peer_username,
+                                              str(len(errors))))
     terminate_VPN()
     print('Done!')
 
