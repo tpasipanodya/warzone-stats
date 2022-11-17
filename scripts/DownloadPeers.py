@@ -85,7 +85,8 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
         response_json = json.loads(response_str)
 
         if 'errors' in response_json:
-            if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in response_json['errors']):
+            if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in
+                   response_json['errors']):
                 print('{}| Rate Limited! Sleeping 5 seconds...'.format(current_timestamp()))
                 time.sleep(5)
                 reset_connection()
@@ -94,7 +95,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
             else:
                 print('{}| ERROR Skipping peer {} due to failed query. cause: {}.'
                       .format(current_timestamp(), peer, response_json))
-                errors.append({ 'username': peer, 'response': response_json })
+                errors.append({'username': peer, 'response': response_json})
                 return matches, errors, None
         else:
             data = response_json['data']
@@ -146,8 +147,9 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
 
             if eagerly_terminate_match_queries(matches):
                 next_page = None
-                print('{}| WARN Eagerly terminating peer match queries! current_match_count: {}, current_page: {}, next_page: {}'
-                      .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
+                print(
+                    '{}| WARN Eagerly terminating peer match queries! current_match_count: {}, current_page: {}, next_page: {}'
+                        .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
             return matches, errors, next_page
     else:
         error_message = 'Failed downloading matches for player {}'.format(peer)
@@ -168,7 +170,7 @@ def eagerly_terminate_match_queries(batch):
             return True
 
 
-def extractPlatformUserId(profileUrl, platform):
+def extract_platform_user_id(profileUrl, platform):
     userId = profileUrl.split('/warzone/profile/{}/'.format(platform))[1]
     userId = userId.split('/overview')[0]
     return userId
@@ -177,17 +179,14 @@ def extractPlatformUserId(profileUrl, platform):
 def serialized_player(raw_player):
     metadata = raw_player['metadata']
     attributes = raw_player['attributes']
-    try:
-        return {
-            'username': attributes['platformUserIdentifier'],
-            'platform': attributes['platformSlug'],
-            'platformUserId': extractPlatformUserId(metadata['profileUrl'], attributes['platformSlug'])
-        }
-    except Exception as error:
-        print("{}| Peer parse error! Peer: {},   error: {}"
-              .format(current_timestamp(),
-                      json.dumps(raw_player),
-                      str(error)))
+    platform = attributes.fetch('platformSlug', None)
+    player = {'username': attributes['platformUserIdentifier']}
+    if platform is None:
+        return player
+    else:
+        player['platform'] = attributes['platformSlug']
+        player['platform_user_id'] = extract_platform_user_id(metadata['profileUrl'], player['platform'])
+        return player
 
 
 def download_peers():
@@ -202,23 +201,12 @@ def download_peers():
 
                     for segment in match['segments']:
                         player = serialized_player(segment)
-                        platform = player['platform']
                         peer_username = player['username']
-                        platform_user_id = player['platformUserId']
 
-
-                        if peer_username is None or len(platform_user_id) <= 1 or len(platform) <= 3:
-                            print("{}| Skipping over peer with a null id".format(current_timestamp()))
-                            errors_file.write('{}\n'.format(json.dumps({
-                                'username': peer_username,
-                                'matches': {
-                                    "cause": "Peer with a null id",
-                                    "player": player,
-                                    "match": match
-                                }
-                            })))
-                        else:
+                        if 'platform' in player:
+                            platform = player['platform']
                             peer_username = peer_username.strip()
+                            platform_user_id = player['platform_user_id']
 
                             if peer_username in known_peers:
                                 print("{}| Skipping known peer {}".format(current_timestamp(), peer_username))
@@ -242,6 +230,17 @@ def download_peers():
                                               str(len(processed_matches)),
                                               peer_username,
                                               str(len(errors))))
+                        else:
+                            print("{}| Skipping over player with an unknown platform"
+                                  .format(current_timestamp(), peer_username))
+                            errors_file.write('{}\n'.format(json.dumps({
+                                'username': peer_username,
+                                'matches': {
+                                    "cause": "Peer with a null id",
+                                    "player": player,
+                                    "match_id": match['attributes']['id']
+                                }
+                            })))
     terminate_VPN()
     print('Done!')
 
