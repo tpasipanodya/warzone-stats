@@ -152,12 +152,17 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
                         .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
             return matches, errors, next_page
     else:
-        error_message = 'Failed downloading matches for player {}'.format(peer)
-        print(error_message)
-        request_count = 0
-        reset_connection()
-        time.sleep(5)
-        return matches, errors, curr_page
+        if 'Site Error - 500x' in response_str:
+            print('{}| Site error! Failed downloading peer data. peer: {}'
+                  .format(current_timestamp(), peer))
+            return matches, errors, None
+        else:
+            print('{}| Failed downloading matches for player {}'
+                  .format(current_timestamp(), peer))
+            request_count = 0
+            reset_connection()
+            time.sleep(5)
+            return matches, errors, curr_page
 
 
 def eagerly_terminate_match_queries(batch):
