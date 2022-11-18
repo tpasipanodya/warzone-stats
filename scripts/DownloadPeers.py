@@ -68,7 +68,7 @@ def fetch_peer(username, platform_username, platform):
 #
 #
 def fetch_peer_matches(peer, platform, platform_username, curr_page):
-    time.sleep(0 + randrange(2))
+    time.sleep(0 + randrange(1))
     page_arg = parse.quote_plus(str(curr_page))
     unpaged_query_url = base_url.format(platform, parse.quote(platform_username))
     query_url = '{}&next={}'.format(unpaged_query_url, page_arg)
