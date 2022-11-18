@@ -160,7 +160,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
             print('{}| Site error! Failed downloading peer data. peer: {}'
                   .format(current_timestamp(), peer))
             return matches, errors, None
-        elif 'Access denied' in response_str:
+        elif 'Access denied' in response_str or 'Checking if the site connection is secure' in response_str:
             rate_limited()
             return matches, errors, curr_page
         else:
