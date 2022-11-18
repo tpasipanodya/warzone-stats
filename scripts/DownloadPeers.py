@@ -18,9 +18,9 @@ def reset_connection():
     global request_count
     browser.close()
     browser.quit()
-    time.sleep(0.5 + randrange(3) + randrange(2))
+    time.sleep(randrange(2))
     rotate_VPN()
-    time.sleep(0.5 + randrange(3) + randrange(2))
+    time.sleep(randrange(2))
     request_count = 0
     browser = webdriver.Chrome()
     browser.delete_all_cookies()
