@@ -15,12 +15,20 @@ request_count = 0
 
 def reset_connection():
     global browser
+    global request_count
     browser.close()
     browser.quit()
-    time.sleep(5)
+    time.sleep(0.5 + randrange(3) + randrange(2))
     rotate_VPN()
+    time.sleep(0.5 + randrange(3) + randrange(2))
+    request_count = 0
     browser = webdriver.Chrome()
     browser.delete_all_cookies()
+
+
+def rate_limited():
+    print('{}| Rate Limited...'.format(current_timestamp()))
+    reset_connection()
 
 
 # Load the full list of match ids.
@@ -72,7 +80,6 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
     global request_count
     if request_count >= 50:
         reset_connection()
-        request_count = 0
 
     browser.get(query_url)
     request_count += 1
@@ -87,10 +94,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
         if 'errors' in response_json:
             if any(error['code'] == 'RateLimited' or error['code'] == 'Warden::Challenge' for error in
                    response_json['errors']):
-                print('{}| Rate Limited! Sleeping 5 seconds...'.format(current_timestamp()))
-                time.sleep(5)
-                reset_connection()
-                request_count = 0
+                rate_limited()
                 return matches, errors, curr_page
             else:
                 print('{}| ERROR Skipping peer {} due to failed query. cause: {}.'
@@ -156,10 +160,12 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
             print('{}| Site error! Failed downloading peer data. peer: {}'
                   .format(current_timestamp(), peer))
             return matches, errors, None
+        elif 'Access denied' in response_str:
+            rate_limited()
+            return matches, errors, curr_page
         else:
             print('{}| Failed downloading matches for player {}'
                   .format(current_timestamp(), peer))
-            request_count = 0
             time.sleep(5000000)
             reset_connection()
             return matches, errors, curr_page
