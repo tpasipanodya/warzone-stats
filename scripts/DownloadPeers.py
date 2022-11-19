@@ -27,7 +27,7 @@ def reset_connection():
 
 
 def rate_limited():
-    print('{}| Rate Limited...'.format(current_timestamp()))
+    print('{}| RATE_LIMITED'.format(current_timestamp()))
     reset_connection()
 
 
@@ -72,7 +72,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
     page_arg = parse.quote_plus(str(curr_page))
     unpaged_query_url = base_url.format(platform, parse.quote(platform_username))
     query_url = '{}&next={}'.format(unpaged_query_url, page_arg)
-    print('{}| Querying for peer \'{}\'. Query: {}'.format(current_timestamp(), peer, query_url))
+    print('{}| QUERY. peer \'{}\'. request: {}'.format(current_timestamp(), peer, query_url))
 
     errors = []
     matches = []
@@ -97,7 +97,7 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
                 rate_limited()
                 return matches, errors, curr_page
             else:
-                print('{}| ERROR Skipping peer {} due to failed query. cause: {}.'
+                print('{}| QUERY_ERROR. peer {}, cause: {}.'
                       .format(current_timestamp(), peer, response_json))
                 errors.append({'username': peer, 'response': response_json})
                 return matches, errors, None
@@ -152,19 +152,19 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
             if eagerly_terminate_match_queries(matches):
                 next_page = None
                 print(
-                    '{}| WARN Eagerly terminating peer match queries! current_match_count: {}, current_page: {}, next_page: {}'
+                    '{}| PEER_LOOP_EXIT. current_match_count: {}, current_page: {}, next_page: {}'
                         .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
             return matches, errors, next_page
     else:
         if 'Site Error - 500x' in response_str or '404 - File or directory not found' in response_str:
-            print('{}| Site error! Failed downloading peer data. peer: {}'
+            print('{}| SITE_ERROR. peer: {}'
                   .format(current_timestamp(), peer))
             return matches, errors, None
         elif 'Access denied' in response_str or 'Checking if the site connection is secure' in response_str:
             rate_limited()
             return matches, errors, curr_page
         else:
-            print('{}| Failed downloading matches for player {}'
+            print('{}| UNKNOWN_ERROR. peer: {}'
                   .format(current_timestamp(), peer))
             time.sleep(5000000)
             reset_connection()
