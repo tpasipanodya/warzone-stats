@@ -219,7 +219,7 @@ def download_peers():
                             platform_user_id = player['platform_user_id']
 
                             if peer_username in known_peers:
-                                print("{}| Skipping known peer {}".format(current_timestamp(), peer_username))
+                                print("{}| KNOWN_PEER. peer: {}".format(current_timestamp(), peer_username))
                             else:
                                 processed_matches, errors = fetch_peer(peer_username, platform_user_id, platform)
 
@@ -235,13 +235,13 @@ def download_peers():
                                     })))
 
                                 known_peers.add(peer_username)
-                                print('{}| Processed {} matches for player {}. Encountered {} errors'
+                                print('{}| PEER_PROCESSED. peer {}, matche: {}, errors: {}'
                                       .format(current_timestamp(),
-                                              str(len(processed_matches)),
                                               peer_username,
+                                              str(len(processed_matches)),
                                               str(len(errors))))
                         else:
-                            print("{}| Skipping over player with an unknown platform"
+                            print("{}| UNKNOWN_PLATFORM. peer: {}"
                                   .format(current_timestamp(), peer_username))
                             errors_file.write('{}\n'.format(json.dumps({
                                 'username': peer_username,
