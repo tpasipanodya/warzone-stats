@@ -35,7 +35,7 @@ def rate_limited():
 known_peers = set()
 try:
     with open('../data/peers.processed.jsonl', 'r') as peers_file:
-        for peer_str in peers_file.readlines():
+        for peer_str in peers_file:
             if peer_str.startswith('{'):
                 peer = json.loads(peer_str)
                 known_peers.add(peer['username'].strip())
@@ -206,7 +206,7 @@ def download_peers():
                 initialize_VPN(save=1, area_input=['complete rotation'])
                 rotate_VPN()
 
-                for match_str in matches_file.readlines():
+                for match_str in matches_file:
                     match = json.loads(match_str)['data']
 
                     for segment in match['segments']:
