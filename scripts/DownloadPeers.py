@@ -157,11 +157,15 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
                         .format(current_timestamp(), str(len(matches)), str(curr_page), str(next_page)))
             return matches, errors, next_page
     else:
-        if 'Site Error - 500x' in response_str or '404 - File or directory not found' in response_str:
+        if 'Site Error - 500x' in response_str:
             print('{}| SITE_ERROR. peer: {}'
                   .format(current_timestamp(), peer))
             rate_limited()
             return matches, errors, curr_page
+        elif '404 - File or directory not found' in response_str:
+            print('{}| 404_NOT_FOUND. peer: {}'
+                  .format(current_timestamp(), peer))
+            return matches, errors, None
         elif 'Access denied' in response_str or 'Checking if the site connection is secure' in response_str:
             rate_limited()
             return matches, errors, curr_page
