@@ -7,7 +7,7 @@ from random import randrange
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
 
 browser = webdriver.Chrome()
-base_url = 'https://api.tracker.gg/api/v2/warzone/standard/matches/atvi/{}?type=wz'
+base_url = 'https://api.tracker.gg/api/v2/warzone/standard/matches/psn/{}?type=wz'
 opening_response_tag = '<html><head><meta name="color-scheme" content="light dark"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">'
 closing_response_tag = '</pre></body></html>'
 
