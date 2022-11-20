@@ -16,6 +16,7 @@ request_count = 0
 def reset_connection():
     global browser
     global request_count
+    browser.delete_all_cookies()
     browser.close()
     browser.quit()
     time.sleep(0.5 + randrange(2))
@@ -159,7 +160,8 @@ def fetch_peer_matches(peer, platform, platform_username, curr_page):
         if 'Site Error - 500x' in response_str or '404 - File or directory not found' in response_str:
             print('{}| SITE_ERROR. peer: {}'
                   .format(current_timestamp(), peer))
-            return matches, errors, None
+            rate_limited()
+            return matches, errors, curr_page
         elif 'Access denied' in response_str or 'Checking if the site connection is secure' in response_str:
             rate_limited()
             return matches, errors, curr_page
