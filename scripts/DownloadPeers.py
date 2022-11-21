@@ -219,7 +219,7 @@ def download_peers():
                         player = serialized_player(segment)
                         peer_username = player['username']
 
-                        if 'platform' in player:
+                        if 'platform' in player and player['platform'] == 'atvi':
                             platform = player['platform']
                             peer_username = peer_username.strip()
                             platform_user_id = player['platform_user_id']
