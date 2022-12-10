@@ -111,7 +111,7 @@ def sample_next_set_of_players(n=5):
 
                 while player_count < n:
                     try:
-                        player_index = random.randrange(1, 50_000)
+                        player_index = random.randrange(1, 10_000)
                         next_player(player_index,
                                       known_players,
                                       error_file,
