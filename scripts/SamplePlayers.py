@@ -1,16 +1,40 @@
 import json
 import random
 import time
-
+import datetime
 from retry import retry
 from selenium import webdriver
 from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
+from random import randrange
 
 page_size = 1
 browser = webdriver.Chrome()
 base_url = 'https://api.tracker.gg/api/v1/warzone/standard/leaderboards?type=battle-royale&platform=psn&board=Wins&skip={}&take={}'
 opening_response_tag = '<html><head><meta name="color-scheme" content="light dark"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">'
 closing_response_tag = '</pre></body></html>'
+
+
+def reset_connection():
+    global browser
+    global request_count
+    browser.delete_all_cookies()
+    browser.close()
+    browser.quit()
+    time.sleep(0.5 + randrange(2))
+    rotate_VPN()
+    time.sleep(0.5 + randrange(2))
+    request_count = 0
+    browser = webdriver.Chrome()
+    browser.delete_all_cookies()
+
+
+def rate_limited():
+    print('{}| RATE_LIMITED'.format(current_timestamp()))
+    reset_connection()
+
+
+def current_timestamp():
+    return datetime.datetime.now().isoformat()
 
 
 @retry(tries=5, delay=3)
@@ -22,17 +46,15 @@ def next_player(player_index,
     url = base_url.format(player_index, page_size)
     browser.get(url)
     response_html = browser.page_source
-    response_json = response_html.replace(opening_response_tag, '')
-    response_json = response_json.replace(closing_response_tag, '')
+    response_str = response_html.replace(opening_response_tag, '')
+    response_str = response_str.replace(closing_response_tag, '')
 
-    if response_json.startswith('{') and response_json.endswith('}'):
-        response = json.loads(response_json)
+    if response_str.startswith('{') and response_str.endswith('}'):
+        response = json.loads(response_str)
         if 'errors' in response:
-            errors = response_json['errors']
+            errors = response_str['errors']
             if any(error['code'] == 'RateLimited' for error in errors):
-                print('Rate Limited. Sleeping for 5 minnutes..')
-                time.sleep(300)
-                rotate_VPN()
+                rate_limited()
             elif any(error['code'] == 'LeaderboardStatus::NoData' for error in errors):
                 raise Exception('The leaderboard is not currently available.')
             else:
@@ -50,6 +72,15 @@ def next_player(player_index,
                     print('Processed player {}'.format(player_id))
                 else:
                     print('Skipped {}'.fomat(player_id))
+    elif 'Access denied' in response_str or \
+            'Checking if the site connection is secure' in response_str or \
+            'review the security of your connection' in response_str:
+        rate_limited()
+        return next_player(player_index,
+                           known_players,
+                           error_file,
+                           players_raw_file,
+                           players_processed_file)
     else:
         print('Failed loading players for player index {}. Response: {}'
               .format(str(player_index), response_html))
