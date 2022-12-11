@@ -1,10 +1,6 @@
 import json
-from random import randrange
-import time
 import datetime
-from retry import retry
-from selenium import webdriver
-from nordvpn_switcher import initialize_VPN, rotate_VPN, terminate_VPN
+from random import randrange
 
 
 def log(message):
