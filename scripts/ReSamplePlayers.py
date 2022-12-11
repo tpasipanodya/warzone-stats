@@ -20,6 +20,11 @@ with open('../data/peers.processed.jsonl', 'r') as peers_file:
             if len(peer_json['matches']) > 0:
                 peer_ids.add(peer_json['username'].strip())
 
+with open('../data/sampled_players.raw.jsonl', 'r') as players_raw_file:
+    for player_str in players_raw_file:
+        player_json = json.loads(player_str)
+        peer_ids.add(player_json['id'])
+
 
 def resample_players(n=5):
     player_ids = list(peer_ids)
